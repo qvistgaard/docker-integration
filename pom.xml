@@ -45,6 +45,14 @@
 		<developerConnection>scm:git:git@github.com:ssoerensen/docker-integration.git</developerConnection>
 	</scm>
 
+	<developers>
+		<developer>
+			<name>Steffen Folman Sørensen</name>
+			<email>steffen@sublife.dk</email>
+			<organizationUrl>https://github.com/ssoerensen</organizationUrl>
+		</developer>
+	</developers>
+
 	<!-- ////////////////////////////////////////////////////////////////////////
 	//
 	//	Dependency Management

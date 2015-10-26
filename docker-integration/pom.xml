@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<artifactId>docker-integration-parent</artifactId>
+		<groupId>dk.sublife.docker-integration</groupId>
+		<version>1.0.2-SNAPSHOT</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>docker-integration</artifactId>
+	<name>Docker Integration Testing Libraries</name>
+
+	<dependencies>
+
+		<!-- ////////////////////////////////////////////////////////////////////////
+		//
+		//	Third party dependencies
+		//
+		//  /////////////////////////////////////////////////////////////////////////
+		-->
+		<dependency>
+			<groupId>com.spotify</groupId>
+			<artifactId>docker-client</artifactId>
+		</dependency>
+
+
+		<!-- ////////////////////////////////////////////////////////////////////////
+		//
+		//	Spring related dependencies
+		//
+		//  /////////////////////////////////////////////////////////////////////////
+		-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-logging</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+		</dependency>
+
+
+		<!-- ////////////////////////////////////////////////////////////////////////
+		//
+		//	Test related dependencies
+		//
+		//  /////////////////////////////////////////////////////////////////////////
+		-->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+	</dependencies>
+
+</project>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<packaging>pom</packaging>
+	<modules>
+		<module>docker-integration</module>
+		<module>docker-integration-archetype</module>
+	</modules>
+
+
+	<!-- ////////////////////////////////////////////////////////////////////////
+	//
+	//	Basic package informations.
+	//
+	//  /////////////////////////////////////////////////////////////////////////
+	-->
+	<groupId>dk.sublife.docker-integration</groupId>
+	<artifactId>docker-integration-parent</artifactId>
+	<name>Docker Integration Testing Framework</name>
+	<version>1.0.2-SNAPSHOT</version>
+
+	<properties>
+		<docker-client.version>3.1.9</docker-client.version>
+		<language.level>1.8</language.level>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven-javadoc-plugin.version>2.10.1</maven-javadoc-plugin.version>
+		<maven-compiler-plugin.version1>3.2</maven-compiler-plugin.version1>
+	</properties>
+
+	<scm>
+		<url>https://github.com/ssoerensen/docker-integration</url>
+		<connection>scm:git:git://github.com/ssoerensen/docker-integration.git</connection>
+		<developerConnection>scm:git:git@github.com:ssoerensen/docker-integration.git</developerConnection>
+	</scm>
+
+	<!-- ////////////////////////////////////////////////////////////////////////
+	//
+	//	Dependency Management
+	//
+	//  /////////////////////////////////////////////////////////////////////////
+	-->
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.spotify</groupId>
+				<artifactId>docker-client</artifactId>
+				<version>${docker-client.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-dependencies</artifactId>
+				<type>pom</type>
+				<version>1.2.5.RELEASE</version>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version1}</version>
+				<configuration>
+					<source>${language.level}</source>
+					<target>${language.level}</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>${maven-javadoc-plugin.version}</version>
+				<configuration>
+					<additionalparam>-Xdoclint:none</additionalparam>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.4</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>

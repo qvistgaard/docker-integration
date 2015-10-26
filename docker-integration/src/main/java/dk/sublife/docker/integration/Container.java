@@ -68,6 +68,7 @@ abstract public class Container implements InitializingBean, DisposableBean {
 	 */
 	@Autowired
 	private HostConfig hostConfig;
+	private boolean isUp;
 
 	/**
 	 * Create docker container config.
@@ -147,7 +148,7 @@ abstract public class Container implements InitializingBean, DisposableBean {
 	 * @throws InterruptedException
 	 */
 	protected boolean waitFor(long timoutSeconds) throws Exception {
-		boolean isUp = false;
+		isUp = false;
 		Instant start = Instant.now();
 		final ContainerInfo containerInfo = dockerClient.inspectContainer(container.id());
 		final String name = containerInfo.name();

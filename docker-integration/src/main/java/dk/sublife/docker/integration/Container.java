@@ -25,7 +25,6 @@ import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.HostConfig;
-import com.spotify.docker.client.messages.ImageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -68,7 +67,7 @@ abstract public class Container implements InitializingBean, DisposableBean {
 	 */
 	@Autowired
 	private HostConfig hostConfig;
-	private boolean isUp;
+	private boolean isUp = false;
 
 	/**
 	 * Create docker container config.
@@ -148,15 +147,14 @@ abstract public class Container implements InitializingBean, DisposableBean {
 	 * @throws InterruptedException
 	 */
 	protected boolean waitFor(long timoutSeconds) throws Exception {
-		isUp = false;
 		Instant start = Instant.now();
 		final ContainerInfo containerInfo = dockerClient.inspectContainer(container.id());
 		final String name = containerInfo.name();
-		final String image = containerInfo.image();
-		final ImageInfo imageInfo = dockerClient.inspectImage(image);
+		final String image = containerInfo.config().image();
 
-		if(LOGGER.isInfoEnabled()){
-			LOGGER.info("Waiting for container is up: {}{}", imageInfo, name);
+
+		if(LOGGER.isInfoEnabled() && !isUp){
+			LOGGER.info("Waiting for container is up: {}{}", image, name);
 		}
 		while(!isUp){
 			try {
@@ -193,7 +191,7 @@ abstract public class Container implements InitializingBean, DisposableBean {
 			Thread.sleep(5000);
 		}
 		if(LOGGER.isInfoEnabled()){
-			LOGGER.info("container is up {}", dockerClient.inspectContainer(container.id()).name());
+			LOGGER.info("container is up {}{}", image, name);
 		}
 		return true;
 	}
@@ -281,10 +279,9 @@ abstract public class Container implements InitializingBean, DisposableBean {
 		if(LOGGER.isInfoEnabled()){
 			LOGGER.info("Removing container: {}", dockerClient.inspectContainer(container.id()).name());
 		}
-		dockerClient.removeContainer(container.id());
+		dockerClient.removeContainer(container.id(), true);
 		if(LOGGER.isInfoEnabled()){
 			LOGGER.info("Container killed and removed: {}", dockerClient.inspectContainer(container.id()).name());
 		}
-
 	}
 }

@@ -8,12 +8,13 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>docker-integration-archetype</artifactId>
+	<name>Docker Integration Testing Framework Archetype</name>
+	<url>https://github.com/ssoerensen/docker-integration</url>
 
 	<properties>
 		<archetype-packaging.version>2.3</archetype-packaging.version>
 		<replacer.version>1.5.3</replacer.version>
 	</properties>
-
 
 	<build>
 		<extensions>

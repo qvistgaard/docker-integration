@@ -81,6 +81,32 @@ The container is a class which implements the `dk.sublife.docker.integration.Con
 This is the class that will describe how to start the docker container you want to
 test, and how to test if the running container can be considered as "up and running"
 
+#### Setup the Spring Boot Application Context
+Next you need to setup a simple spring application. this application is used when
+running you tests, the application created all the beans necessary to run the tests.
+the Spring boot application is need to make your integration test dependency aware
+of any dependencies you have.
+
+#### Create Spring Boot Starter
+To test and make other parts of the stack aware of your software you must create
+a Spring Boot starter `Configuration` class. This is a simple Spring class which
+is annotated with `@Configuration` and it should as a minimum expose the `Container`
+class as a bean.
+Next create a file in `resources/META-INF/spring.factories` and add the following
+line (replacing the `package.StarterClass` with the package and name of your class):
+
+	org.springframework.boot.autoconfigure.EnableAutoConfiguration=package.StarterClass
+
+#### First run
+To test if everything is working as intended, run the Spring boot Application, check
+the logs and see if the container is being started.
+
+For inspiration take a look in the example module, where you can find a simple 
+integration test for two versions of a MySQL server running in a docker container.
+
+## Creating your first tests
+
+
 
 ## Setup
 Add library to your project:

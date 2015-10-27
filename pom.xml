@@ -40,6 +40,13 @@
 		<maven-compiler-plugin.version1>3.2</maven-compiler-plugin.version1>
 	</properties>
 
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+
 	<scm>
 		<url>https://github.com/ssoerensen/docker-integration</url>
 		<connection>scm:git:git://github.com/ssoerensen/docker-integration.git</connection>

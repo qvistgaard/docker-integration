@@ -1,13 +1,16 @@
-# Docker and Springboot based integration testing library.
+# Docker and Spring boot based integration testing library.
 You can use this framework to perform integration testing of docker containers.
  
 The library uses spring features to support dependencies of other containers. and
 making sure all dependencies have been meet before running the tests.
 
 * [Why](#why)
-* [Features](#why)
-* [Setup](#setup)
-* [Usage](#usage)
+* [Features](#features)
+	* [Big Bang testing](#big-bank-testing)
+	* [Top-down and Bottom-up](#top-down-and-bottom-up)
+	* [Docker support](#docker-support)
+	* [Dependency Awareness](#dependency-awareness)
+* [Getting Started](#getting-started)
 
 ## Why?
 Let's say you want to do integration testing of you software. You have most of
@@ -35,7 +38,7 @@ apply the Top-down and Bottom-up approaches.
 Bottom-up testing is a bit like unit testing, however the tests is run on your
 software. An example could be to test when your application receives a certain
 message it returns the correct response. The bottom-up tests are just like unit
-not tests, shared with other components.
+tests, shared with other components.
 
 #### Top-down testing
 Top-down testing allows you to test your software and find if any components in 
@@ -69,7 +72,7 @@ dependency:
 	<dependency>
 		<groupId>dk.sublife.docker-integration</groupId>
 		<artifactId>docker-integration</artifactId>
-		<version>1.0.2-SNAPSHOT</version>
+		<version>1.0.2</version>
 	</dependency>
 
 Now you must create a basic Spring boot application along with some basic classes
@@ -107,9 +110,3 @@ integration test for two versions of a MySQL server running in a docker containe
 ## Creating your first tests
 
 
-
-## Setup
-Add library to your project:
-
-
-## Usage

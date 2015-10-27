@@ -11,7 +11,7 @@
 
 	<properties>
 		<language.level>1.8</language.level>
-		<docker-integration.version>1.0.2-SNAPSHOT</docker-integration.version>
+		<docker-integration.version>%VERSION%</docker-integration.version>
 		<spring-test.version>4.1.6.RELEASE</spring-test.version>
 		<junit.version>4.12</junit.version>
 	</properties>

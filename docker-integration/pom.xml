@@ -9,7 +9,8 @@
 
 	<artifactId>docker-integration</artifactId>
 	<name>Docker Integration Testing Libraries</name>
-
+	<description>Perform Integration Testing using Springboot and docker</description>
+	<url>https://github.com/ssoerensen/docker-integration</url>
 	<dependencies>
 
 		<!-- ////////////////////////////////////////////////////////////////////////

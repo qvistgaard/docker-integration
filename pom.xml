@@ -20,7 +20,7 @@
 	<name>Docker Integration Testing Framework</name>
 	<description>Perform Integration Testing using Springboot and docker</description>
 	<url>https://github.com/ssoerensen/docker-integration</url>
-	<version>1.0.2</version>
+	<version>1.0.3-SNAPSHOT</version>
 
 	<licenses>
 		<license>

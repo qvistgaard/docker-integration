@@ -4,7 +4,7 @@
 
 	<groupId>dk.sublife.docker-integration</groupId>
 	<artifactId>docker-integration-example</artifactId>
-	<version>1.0.2</version>
+	<version>Unknown</version>
 	<name>Docker Integration Testing Framework Examples</name>
 	<url>https://github.com/ssoerensen/docker-integration</url>
 

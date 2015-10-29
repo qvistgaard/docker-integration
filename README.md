@@ -8,9 +8,19 @@ making sure all dependencies have been meet before running the tests.
 * [Features](#features)
 	* [Big Bang testing](#big-bank-testing)
 	* [Top-down and Bottom-up](#top-down-and-bottom-up)
+		* [Bottom-up testing](#bottom-up-testing)
+		* [Top-down testing](#top-down-testing)
+		* [Sandwich testing](#sandwich-testing)
 	* [Docker support](#docker-support)
 	* [Dependency Awareness](#dependency-awareness)
 * [Getting Started](#getting-started)
+	* [Setting up your project](#setting-up-your-project)
+		* [Creating the container](#creating-the-container)
+		* [Setup the Spring Boot Application Context](#setup-the-spring-boot-application-context)
+		* [Create Spring Boot Starter](#create-spring-boot-starter)
+		* [First run](#first-run)
+* [Creating your first tests](#creating-your-first-tests)
+* [Using Dependencies](#using-dependencies) 
 
 ## Why?
 Let's say you want to do integration testing of you software. You have most of
@@ -65,14 +75,14 @@ Before you get started it is important to mention that it is always a very good
 idea to keep you integration tests separated from your main source branch. This
 is because all your software must be built before running your integration tests.
 
-### Setting up your project.
+### Setting up your project
 First start by creating a new maven project, and add the docker-integration 
 dependency:
 
 	<dependency>
 		<groupId>dk.sublife.docker-integration</groupId>
 		<artifactId>docker-integration</artifactId>
-		<version>1.0.2</version>
+		<version>1.0.3</version>
 	</dependency>
 
 Now you must create a basic Spring boot application along with some basic classes
@@ -100,6 +110,10 @@ line (replacing the `package.StarterClass` with the package and name of your cla
 
 	org.springframework.boot.autoconfigure.EnableAutoConfiguration=package.StarterClass
 
+For more information about the spring.factories file please consult the [Spring
+boot documentation: Developing auto-configuration and using conditions]
+(http://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-developing-auto-configuration.html)
+
 #### First run
 To test if everything is working as intended, run the Spring boot Application, check
 the logs and see if the container is being started.
@@ -108,5 +122,31 @@ For inspiration take a look in the example module, where you can find a simple
 integration test for two versions of a MySQL server running in a docker container.
 
 ## Creating your first tests
+To create your first test we must first have a test class, since this is a 
+integration test, it is recommended to use the `maven-failsafe-plugin` which
+runs test classes containing `IT` in its name. When the test class have been
+created, add the following annotations to the class:
+ 
+	@RunWith(SpringJUnit4ClassRunner.class)
+	@SpringApplicationConfiguration(classes = { MyExampleApplicationClass.class })
+	@DirtiesContext
 
+The first two annotation `@RunWith` and `SpringApplicationConfiguration` tells 
+junit that we want to run the tests using Spring, and load the Application class
+into that spring context.
 
+The last `@DirtiesContext` tells Spring, that when all tests in the class have 
+been executed, shutdown the spring context. when shutting down the Spring context
+we can guarantee that all docker containers are shutdown and removed from the system
+
+## Using dependencies
+Great we have a couple of integration test modules, a couple of [Bottom-up tests]
+(#bottom-up-testing) etc. Now it is time to combine it into [Top-down tests]
+(#top-down-testing).
+
+When all tests are passing, and the individual components are installed and or
+deployed to a maven repository, all you need is to add the integration test
+modules, you would like to combine, to your dependency list. Then you can create
+new tests where you can access and combine each component. To access the container
+information for retrieving addresses and such, simply just use Spring's `@Autowire`
+annotation, and you can access all utility methods of the container.

@@ -85,6 +85,18 @@ abstract public class Container implements InitializingBean, DisposableBean {
 	 */
 	abstract public boolean isUp();
 
+	/**
+	 * Post create actions.
+	 *
+	 * Implement this method to perform post startup actions.
+	 * this method is executed after docker container is created. This is the
+	 * first time it is possible to inspect the container. This allows for
+	 * retrieval of the ip address and for example copy files into the container
+	 * before the is actually started.
+	 *
+	 * @return boolean true if everything went according to plan
+	 */
+	private boolean postCreate() { return true; }
 
 	/**
 	 * Post startup actions.
@@ -250,6 +262,8 @@ abstract public class Container implements InitializingBean, DisposableBean {
 			pull(containerConfig.image());
 		}
 		this.container = dockerClient.createContainer(containerConfig);
+
+		postCreate();
 
 		try {
 			if(LOGGER.isInfoEnabled()){

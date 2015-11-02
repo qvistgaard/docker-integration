@@ -96,7 +96,7 @@ abstract public class Container implements InitializingBean, DisposableBean {
 	 *
 	 * @return boolean true if everything went according to plan
 	 */
-	private boolean postCreate() { return true; }
+	protected boolean postCreate() { return true; }
 
 	/**
 	 * Post startup actions.
@@ -106,7 +106,7 @@ abstract public class Container implements InitializingBean, DisposableBean {
 	 *
 	 * @return boolean postStartup actions.
 	 */
-	public boolean postStartup(){
+	protected boolean postStartup(){
 		return true;
 	}
 

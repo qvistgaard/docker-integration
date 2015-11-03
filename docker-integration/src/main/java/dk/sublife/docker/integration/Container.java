@@ -289,17 +289,18 @@ abstract public class Container implements InitializingBean, DisposableBean {
 	 */
 	@Override
 	public void destroy() throws Exception {
+		final String name = dockerClient.inspectContainer(container.id()).name();
 		if(LOGGER.isInfoEnabled()){
-			LOGGER.info("Stopping container: {}", dockerClient.inspectContainer(container.id()).name());
+			LOGGER.info("Stopping container: {}", name);
 		}
 		dockerClient.killContainer(container.id());
 
 		if(LOGGER.isInfoEnabled()){
-			LOGGER.info("Removing container: {}", dockerClient.inspectContainer(container.id()).name());
+			LOGGER.info("Removing container: {}", name);
 		}
 		dockerClient.removeContainer(container.id(), true);
 		if(LOGGER.isInfoEnabled()){
-			LOGGER.info("Container killed and removed: {}", dockerClient.inspectContainer(container.id()).name());
+			LOGGER.info("Container killed and removed: {}", name);
 		}
 	}
 }

@@ -268,7 +268,11 @@ abstract public class Container implements InitializingBean, DisposableBean {
 		try {
 			if(LOGGER.isInfoEnabled()){
 				LOGGER.info("Starting container: image: {}, name: {}, adress: {}", containerConfig.image(), dockerClient.inspectContainer(this.container.id()).name(), address());
-				inspect().config().env().forEach(s -> LOGGER.info("Environment Variable: {}", s));
+				try {
+					inspect().config().env().forEach(s -> LOGGER.info("Environment Variable: {}", s));
+				} catch (NullPointerException e){
+					LOGGER.info("No environment variables set for container");
+				}
 			}
 			dockerClient.startContainer(this.container.id());
 		} catch (Exception e) {

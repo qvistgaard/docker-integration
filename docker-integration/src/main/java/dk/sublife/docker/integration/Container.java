@@ -37,6 +37,9 @@ import java.nio.charset.Charset;
 import java.time.Duration;
 import java.time.Instant;
 
+import static com.spotify.docker.client.DockerClient.LogsParam.stderr;
+import static com.spotify.docker.client.DockerClient.LogsParam.stdout;
+
 /**
  * Docker container class.
  * <p/>
@@ -182,8 +185,8 @@ abstract public class Container implements InitializingBean, DisposableBean {
 					LOGGER.error("Container is not up: {}{}", image, name);
 					final LogStream logs = dockerClient.logs(
 							container.id(),
-							DockerClient.LogsParameter.STDERR,
-							DockerClient.LogsParameter.STDOUT);
+							stderr(),
+							stdout());
 					while (logs.hasNext()) {
 						final LogMessage next = logs.next();
 						final CharBuffer decode = Charset.forName("UTF-8").decode(next.content());

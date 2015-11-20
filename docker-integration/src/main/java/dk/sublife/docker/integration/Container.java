@@ -18,8 +18,8 @@ package dk.sublife.docker.integration;
 import com.google.common.collect.ImmutableList;
 import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.DockerException;
+import com.spotify.docker.client.DockerRequestException;
 import com.spotify.docker.client.ImageNotFoundException;
-import com.spotify.docker.client.LogMessage;
 import com.spotify.docker.client.LogStream;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
@@ -31,9 +31,9 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.IOException;
 import java.net.UnknownHostException;
-import java.nio.CharBuffer;
-import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -92,7 +92,7 @@ abstract public class Container implements InitializingBean, DisposableBean {
 	 * Post create actions.
 	 *
 	 * Implement this method to perform post startup actions.
-	 * this method is executed after docker container is created. This is the
+	 * This method is executed after docker container is created. This is the
 	 * first time it is possible to inspect the container. This allows for
 	 * retrieval of the ip address and for example copy files into the container
 	 * before the is actually started.
@@ -102,10 +102,21 @@ abstract public class Container implements InitializingBean, DisposableBean {
 	protected boolean postCreate() { return true; }
 
 	/**
+	 * Post container start actions.
+	 *
+	 * Implement this method to perform post container startup actions.
+	 * This method is executed after the container is started but before isUp has been run to verify that the container
+	 * is fully started.
+	 *
+	 * @return boolean true if everything went according to plan
+	 */
+	protected boolean postStartContainer() { return true; }
+
+	/**
 	 * Post startup actions.
 	 *
 	 * Implement this method to perform post startup actions.
-	 * this method is executed after isUp returns true but before waitFor returns.
+	 * This method is executed after isUp returns true but before waitFor returns.
 	 *
 	 * @return boolean postStartup actions.
 	 */
@@ -162,11 +173,10 @@ abstract public class Container implements InitializingBean, DisposableBean {
 	 * @throws InterruptedException
 	 */
 	protected boolean waitFor(long timoutSeconds) throws Exception {
-		Instant start = Instant.now();
-		final ContainerInfo containerInfo = dockerClient.inspectContainer(container.id());
-		final String name = containerInfo.name();
-		final String image = containerInfo.config().image();
-
+		final Instant start = Instant.now();
+		final ContainerInfo inspect = inspect();
+		final String name = inspect.name();
+		final String image = inspect.config().image();
 
 		if(LOGGER.isInfoEnabled() && !isUp){
 			LOGGER.info("Waiting for container is up: {}{}", image, name);
@@ -179,19 +189,13 @@ abstract public class Container implements InitializingBean, DisposableBean {
 						if(LOGGER.isInfoEnabled()){
 							LOGGER.info("Running post startup actions...");
 						}
-						postStartup();
+						if (!postStartup()) {
+							throw new RuntimeException("Post startup failed!");
+						}
 					}
 				} else {
 					LOGGER.error("Container is not up: {}{}", image, name);
-					final LogStream logs = dockerClient.logs(
-							container.id(),
-							stderr(),
-							stdout());
-					while (logs.hasNext()) {
-						final LogMessage next = logs.next();
-						final CharBuffer decode = Charset.forName("UTF-8").decode(next.content());
-						LOGGER.error(String.valueOf(decode).trim());
-					}
+					logFromContainer();
 					throw new RuntimeException("Container died.");
 				}
 			} catch (RuntimeException e){
@@ -201,6 +205,14 @@ abstract public class Container implements InitializingBean, DisposableBean {
 			}
 			final long seconds = Duration.between(start, Instant.now()).getSeconds();
 			if(seconds > timoutSeconds){
+				try {
+					if (inspect().state().running()) {
+						LOGGER.error("Container is running but not up: {}{}", image, name);
+						logFromContainer();
+					}
+				} catch (final Exception e) {
+					LOGGER.error("Error inspecting container!", e);
+				}
 				throw new RuntimeException("Wait time exceeded.");
 			}
 			Thread.sleep(5000);
@@ -209,6 +221,17 @@ abstract public class Container implements InitializingBean, DisposableBean {
 			LOGGER.info("container is up {}{}", image, name);
 		}
 		return true;
+	}
+
+	protected void logFromContainer() throws DockerException, InterruptedException {
+		final ContainerInfo inspect = inspect();
+		final String id = inspect.id();
+		final String name = inspect.name();
+		final String image = inspect.config().image();
+		try (final LogStream logs = dockerClient.logs(id, stderr(), stdout())) {
+			final String fullLog = logs.readFully();
+			LOGGER.error("Container logs from {}{}:\n {}", image, name, fullLog);
+		}
 	}
 
 	/**
@@ -221,6 +244,18 @@ abstract public class Container implements InitializingBean, DisposableBean {
 	 */
 	public String address() throws DockerException, InterruptedException, UnknownHostException {
 		return inspect().networkSettings().ipAddress();
+	}
+
+	/**
+	 * Get docker container name
+	 *
+	 * @return container name
+	 * @throws DockerException
+	 * @throws InterruptedException
+	 * @throws UnknownHostException
+	 */
+	public String name() throws DockerException, InterruptedException, UnknownHostException {
+		return inspect().name();
 	}
 
 	/**
@@ -258,29 +293,45 @@ abstract public class Container implements InitializingBean, DisposableBean {
 	@Override
 	synchronized public void afterPropertiesSet() throws Exception {
 		final ContainerConfig containerConfig = createContainer();
+		this.container = create(containerConfig);
+		try {
+			if (!postCreate()) {
+				throw new RuntimeException("Post create container failed!");
+			}
+			LOGGER.info("Starting container: image: {}, name: {}, address: {}", containerConfig.image(), name(), address());
+			startContainer();
+			try {
+				if (!postStartContainer()) {
+					throw new RuntimeException("Post start container failed!");
+				}
+			} catch (final Exception postStartContainerException) {
+				killContainer();
+				throw postStartContainerException;
+			}
+		} catch (final Exception postCreateContainerException) {
+			removeContainer();
+			throw new RuntimeException(postCreateContainerException);
+		}
+	}
+
+	protected ContainerCreation create(final ContainerConfig containerConfig) throws DockerException, InterruptedException {
 		try {
 			dockerClient.inspectImage(containerConfig.image());
 		} catch (ImageNotFoundException e){
 			LOGGER.warn("Image not found: {}. Reason {}", containerConfig.image(), e.getMessage());
 			pull(containerConfig.image());
 		}
-		this.container = dockerClient.createContainer(containerConfig);
+		return dockerClient.createContainer(containerConfig);
+	}
 
-		postCreate();
-
+	protected void startContainer() throws DockerException, InterruptedException, UnknownHostException {
+		final String id = container.id();
 		try {
-			if(LOGGER.isInfoEnabled()){
-				LOGGER.info("Starting container: image: {}, name: {}, adress: {}", containerConfig.image(), dockerClient.inspectContainer(this.container.id()).name(), address());
-				try {
-					inspect().config().env().forEach(s -> LOGGER.info("Environment Variable: {}", s));
-				} catch (NullPointerException e){
-					LOGGER.info("No environment variables set for container");
-				}
-			}
-			dockerClient.startContainer(this.container.id());
-		} catch (Exception e) {
-			throw new RuntimeException(e);
+			inspect().config().env().forEach(s -> LOGGER.info("Environment Variable: {}", s));
+		} catch (NullPointerException e){
+			LOGGER.info("No environment variables set for container");
 		}
+		dockerClient.startContainer(id);
 	}
 
 	/**
@@ -292,18 +343,43 @@ abstract public class Container implements InitializingBean, DisposableBean {
 	 */
 	@Override
 	public void destroy() throws Exception {
-		final String name = dockerClient.inspectContainer(container.id()).name();
-		if(LOGGER.isInfoEnabled()){
-			LOGGER.info("Stopping container: {}", name);
-		}
-		dockerClient.killContainer(container.id());
-
-		if(LOGGER.isInfoEnabled()){
-			LOGGER.info("Removing container: {}", name);
-		}
-		dockerClient.removeContainer(container.id(), true);
-		if(LOGGER.isInfoEnabled()){
-			LOGGER.info("Container killed and removed: {}", name);
+		try {
+			killContainer();
+		} finally {
+			removeContainer();
 		}
 	}
+
+	protected void killContainer() throws DockerException, InterruptedException {
+		final String id = container.id();
+		final String name = dockerClient.inspectContainer(id).name();
+		LOGGER.info("Stopping container: {}", name);
+		try {
+			dockerClient.killContainer(container.id());
+		} catch (final DockerRequestException e) {
+			LOGGER.warn("Docker request error during kill!", e);
+		}
+		LOGGER.info("Container stopped: {}", name);
+	}
+
+	protected void removeContainer() throws DockerException, InterruptedException {
+		final String id = container.id();
+		final String name = dockerClient.inspectContainer(id).name();
+		LOGGER.info("Removing container: {}", name);
+		dockerClient.removeContainer(id, true);
+		LOGGER.info("Container removed: {}", name);
+	}
+
+	/**
+	 /**
+	 * Copies a local directory to the container.
+	 *
+	 * @param localDirectory The local directory to send to the container.
+	 * @param containerDirectory The directory inside the container where the files are copied to.
+	 */
+	public void copyToContainer(final Path localDirectory, final Path containerDirectory) throws InterruptedException, DockerException, IOException {
+		final String id = container.id();
+		dockerClient.copyToContainer(localDirectory, id, containerDirectory.toString());
+	}
+
 }

@@ -75,6 +75,11 @@ Before you get started it is important to mention that it is always a very good
 idea to keep you integration tests separated from your main source branch. This
 is because all your software must be built before running your integration tests.
 
+For ease of use the Archetype for a simple docker integration test module
+can be used using maven:
+
+	mvn archetype:generate -DarchetypeArtifactId=docker-integration-archetype -DarchetypeGroupId=dk.sublife.docker-integration
+
 ### Setting up your project
 First start by creating a new maven project, and add the docker-integration 
 dependency:

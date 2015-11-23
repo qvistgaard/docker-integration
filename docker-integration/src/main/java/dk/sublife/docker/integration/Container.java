@@ -77,7 +77,7 @@ abstract public class Container implements InitializingBean, DisposableBean {
 	 *
 	 * @return docker container config
 	 */
-	abstract protected ContainerConfig createContainer() throws Exception;
+	abstract protected ContainerConfig createContainerConfig() throws Exception;
 
 	/**
 	 * Check if service is up and running.
@@ -99,7 +99,7 @@ abstract public class Container implements InitializingBean, DisposableBean {
 	 *
 	 * @return boolean true if everything went according to plan
 	 */
-	protected boolean postCreate() { return true; }
+	protected boolean postCreateContainer() { return true; }
 
 	/**
 	 * Post container start actions.
@@ -292,10 +292,10 @@ abstract public class Container implements InitializingBean, DisposableBean {
 	 */
 	@Override
 	synchronized public void afterPropertiesSet() throws Exception {
-		final ContainerConfig containerConfig = createContainer();
-		this.container = create(containerConfig);
+		final ContainerConfig containerConfig = createContainerConfig();
+		this.container = createContainer(containerConfig);
 		try {
-			if (!postCreate()) {
+			if (!postCreateContainer()) {
 				throw new RuntimeException("Post create container failed!");
 			}
 			LOGGER.info("Starting container: image: {}, name: {}, address: {}", containerConfig.image(), name(), address());
@@ -314,7 +314,7 @@ abstract public class Container implements InitializingBean, DisposableBean {
 		}
 	}
 
-	protected ContainerCreation create(final ContainerConfig containerConfig) throws DockerException, InterruptedException {
+	protected ContainerCreation createContainer(final ContainerConfig containerConfig) throws DockerException, InterruptedException {
 		try {
 			dockerClient.inspectImage(containerConfig.image());
 		} catch (ImageNotFoundException e){

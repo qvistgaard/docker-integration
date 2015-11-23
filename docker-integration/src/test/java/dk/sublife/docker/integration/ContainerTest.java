@@ -24,7 +24,7 @@ public class ContainerTest {
 	public void testThatWaitForWillFailAfterTimeout() throws Exception {
 		final Container container = new Container() {
 			@Override
-			protected ContainerConfig createContainer() {
+			protected ContainerConfig createContainerConfig() {
 				return null;
 			}
 

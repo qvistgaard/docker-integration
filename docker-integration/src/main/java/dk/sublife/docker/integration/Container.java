@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -71,6 +72,9 @@ abstract public class Container implements InitializingBean, DisposableBean {
 	@Autowired
 	private HostConfig hostConfig;
 	private boolean isUp = false;
+
+	@Value("${dk.sublife.dk.docker.integration.waitForTimeout:60}")
+	private Integer waitForTimeout;
 
 	/**
 	 * Create docker container config.
@@ -162,7 +166,7 @@ abstract public class Container implements InitializingBean, DisposableBean {
 	 * @throws InterruptedException
 	 */
 	public boolean waitFor() throws Exception {
-		return waitFor(60);
+		return waitFor(waitForTimeout);
 	}
 
 	/**

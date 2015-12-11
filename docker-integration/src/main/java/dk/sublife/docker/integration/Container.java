@@ -319,12 +319,7 @@ abstract public class Container implements InitializingBean, DisposableBean {
 	}
 
 	protected ContainerCreation createContainer(final ContainerConfig containerConfig) throws DockerException, InterruptedException {
-		try {
-			dockerClient.inspectImage(containerConfig.image());
-		} catch (ImageNotFoundException e){
-			LOGGER.warn("Image not found: {}. Reason {}", containerConfig.image(), e.getMessage());
-			pull(containerConfig.image());
-		}
+		pull(containerConfig.image());
 		return dockerClient.createContainer(containerConfig);
 	}
 

@@ -319,7 +319,13 @@ abstract public class Container implements InitializingBean, DisposableBean {
 	}
 
 	protected ContainerCreation createContainer(final ContainerConfig containerConfig) throws DockerException, InterruptedException {
-		pull(containerConfig.image());
+		try {
+			pull(containerConfig.image());
+		} catch (DockerException e){
+			LOGGER.warn("Unable to fetch docker image: {}", e.getMessage());
+			LOGGER.warn(e.toString());
+		}
+
 		return dockerClient.createContainer(containerConfig);
 	}
 
